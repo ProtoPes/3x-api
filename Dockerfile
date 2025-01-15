@@ -6,7 +6,10 @@ RUN go build -v -o /usr/bin
 FROM alpine:latest
 
 RUN mkdir -p /opt/amnezia/awg
+WORKDIR /opt/amnezia/awg
+RUN apk add --no-cache dumb-init wireguard-tools-wg
 COPY scripts /opt/amnezia/awg/scripts
-RUN chmod +x /opt/amnezia/awg/scripts
+RUN chmod +x /opt/amnezia/awg/scripts/*
 COPY --from=go /usr/bin/awg-gen-config /usr/bin/awg-gen-config
+CMD ["dumb-init", "scripts/start.sh"]
 

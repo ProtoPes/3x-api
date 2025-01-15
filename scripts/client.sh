@@ -1,9 +1,9 @@
 #!/bin/sh
 
-cd ${PREFIX_DIR}
-source values.txt
-
 PREFIX_DIR="/opt/amnezia/awg"
+cd ${PREFIX_DIR}
+source ${PREFIX_DIR}/scripts/values
+
 CLIENT_NAME=$(awg-gen-config -n)
 if [ ! -r ${PREFIX_DIR}/unused_ips.txt ]; then
     awg-gen-config -g
