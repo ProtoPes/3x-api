@@ -1,26 +1,27 @@
 #!/bin/sh
 
-cd /opt/amnezia/awg
+cd ${PREFIX_DIR}
 source values.txt
 
-CLIENT_NAME=$(/opt/amnezia/awg-gen-config -n)
-if [ ! -r /opt/amnezia/awg/unused_ips.txt ]; then
-    /opt/amnezia/awg-gen-config -g
+PREFIX_DIR="/opt/amnezia/awg"
+CLIENT_NAME=$(awg-gen-config -n)
+if [ ! -r ${PREFIX_DIR}/unused_ips.txt ]; then
+    awg-gen-config -g
 fi
-WIREGUARD_CLIENT_IP="10.8.1.$(/opt/amnezia/awg-gen-config -i)/32"
+WIREGUARD_CLIENT_IP="10.8.1.$(awg-gen-config -i)/32"
 
 WIREGUARD_CLIENT_PRIVATE_KEY=$(wg genkey)
-echo $WIREGUARD_CLIENT_PRIVATE_KEY > /opt/amnezia/awg/keys/${CLIENT_NAME}_private_key.key
+echo $WIREGUARD_CLIENT_PRIVATE_KEY > ${PREFIX_DIR}/keys/${CLIENT_NAME}_private_key.key
 
 WIREGUARD_CLIENT_PUBLIC_KEY=$(echo $WIREGUARD_CLIENT_PRIVATE_KEY | wg pubkey)
-echo $WIREGUARD_CLIENT_PUBLIC_KEY > /opt/amnezia/awg/keys/${CLIENT_NAME}_public_key.key
+echo $WIREGUARD_CLIENT_PUBLIC_KEY > ${PREFIX_DIR}/keys/${CLIENT_NAME}_public_key.key
 
 WIREGUARD_PSK=$(wg genpsk)
-echo $WIREGUARD_PSK > /opt/amnezia/awg/keys/${CLIENT_NAME}_psk.key
+echo $WIREGUARD_PSK > ${PREFIX_DIR}/keys/${CLIENT_NAME}_psk.key
 WIREGUARD_SERVER_PUBLIC_KEY=$(cat wireguard_server_public_key.key)
 
 
-cat > /opt/amnezia/awg/configs/${CLIENT_NAME}.conf <<EOF
+cat > ${PREFIX_DIR}/configs/${CLIENT_NAME}.conf <<EOF
 [Interface]
 Address = $WIREGUARD_CLIENT_IP
 DNS = $PRIMARY_DNS, $SECONDARY_DNS
@@ -43,7 +44,7 @@ Endpoint = $SERVER_IP_ADDRESS:$AWG_SERVER_PORT
 PersistentKeepalive = 25
 EOF
 
-cat >> /opt/amnezia/awg/wg0.conf <<EOF
+cat >> ${PREFIX_DIR}/wg0.conf <<EOF
 
 [Peer]
 PublicKey = $WIREGUARD_CLIENT_PUBLIC_KEY
