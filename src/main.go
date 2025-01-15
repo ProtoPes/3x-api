@@ -10,12 +10,12 @@ import (
 )
 
 const (
-    template = "templates/values.template"
-    valuesFile = "values.txt"
+    valuesFile = "scripts/values"
 )
 
 
 func generateConfigValues() {
+
     const messageInitiationSize int = 148
     const messageResponseSize int = 92
     config := make(map[string]string)
@@ -28,6 +28,7 @@ func generateConfigValues() {
     for (s1 + messageInitiationSize == s2 + messageResponseSize) {
         s2 = randIntBound(15, 150)
     }
+
     config["$INIT_PACKET_JUNK_SIZE"] = strconv.Itoa(s1)
     config["$RESPONSE_PACKET_JUNK_SIZE"] = strconv.Itoa(s2)
     var headersValue [4]string
@@ -35,28 +36,25 @@ func generateConfigValues() {
     for i := range headersValue  {
         headersValue[i] = strconv.Itoa(randIntBound(5, max))
     }
+
     config["$INIT_PACKET_MAGIC_HEADER"] = headersValue[0];
     config["$RESPONSE_PACKET_MAGIC_HEADER"] = headersValue[1];
     config["$UNDERLOAD_PACKET_MAGIC_HEADER"] = headersValue[2];
     config["$TRANSPORT_PACKET_MAGIC_HEADER"] = headersValue[3];
-    config["$AWG_SUBNET_IP"] = "10.8.1.0"
-    config["$WIREGUARD_SUBNET_CIDR"] = "24"
     writeConfigFile(config)
 }
 
 func writeConfigFile(config map[string]string) {
 
-    values, err1 := os.ReadFile(template)
+    values, err1 := os.ReadFile(valuesFile)
     if err1 != nil {
         log.Fatal(err1)
     }
-
     replaceStrings(string(values), valuesFile, config)
-
-
 }
 
 func replaceStrings(input string, outputFile string, config map[string]string) {
+
     for i, j := range config {
         input = strings.ReplaceAll(input, i, j)
         os.WriteFile(outputFile, []byte(input), 0666)
@@ -64,6 +62,7 @@ func replaceStrings(input string, outputFile string, config map[string]string) {
 }
 
 func showUsageMessage(message string) {
+
     fmt.Println(message)
     fmt.Println("Program accepts one of these arguments:")
     fmt.Println("-c or --config : generate config files from template")
@@ -74,10 +73,10 @@ func showUsageMessage(message string) {
 }
 
 func main() {
+
     cliArgs := os.Args[1:]
     if len(cliArgs) != 1 {
-        fmt.Println("Provide exactly one argument! Pass -h for help")
-        os.Exit(1)
+        log.Fatal("Provide exactly one argument! Pass -h for help")
     }
 
     switch cliArgs[0] {
@@ -87,9 +86,7 @@ func main() {
         case "-g", "--gen-ip": generateUnusedIPs()
         case "-h", "--help" : showUsageMessage("AWG configs generator. Usage:")
         default:
-            fmt.Println("Unrecognised flag! Pass -h for help")
-            os.Exit(1)
-
+            log.Fatal("Unrecognised flag! Pass -h for help")
     }
 
 }
