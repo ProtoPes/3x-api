@@ -24,20 +24,15 @@ func generateUnusedIPs() {
 }
 
 func findUnusedIP() string {
-    var unusedIP string
 
-    IPsBytes, err1 := os.ReadFile(unusedIPs)
+    ipsBytes, err1 := os.ReadFile(unusedIPs)
     if err1 != nil {
         log.Fatal(err1)
-        os.Exit(1)
     }
 
-    IPSstring := strings.Split(string(IPsBytes), "\n")
+    index := slices.Index(ipsBytes, 10)
+    var nextIP []byte = ipsBytes[:index]
+    os.WriteFile(unusedIPs, ipsBytes[index + 1:], 0666)
 
-    unusedIP = IPSstring[0]
-    IPSstring = slices.Delete(IPSstring, 0, 1)
-
-    os.WriteFile(unusedIPs, []byte(strings.Join(IPSstring, "\n")), 0666)
-
-    return unusedIP
+    return string(nextIP)
 }
