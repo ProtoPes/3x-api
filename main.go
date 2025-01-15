@@ -63,18 +63,20 @@ func replaceStrings(input string, outputFile string, config map[string]string) {
     }
 }
 
-func showUsageError() {
+func showUsageMessage(message string) {
+    fmt.Println(message)
     fmt.Println("Program accepts one of these arguments:")
     fmt.Println("-c or --config : generate config files from template")
     fmt.Println("-n or --name: generate ranfom name")
     fmt.Println("-i or --ip: find unused ip for client")
     fmt.Println("-g or --gen-ip: generate unused ip adresses file")
+    fmt.Println("-h or --help: show usage")
 }
 
 func main() {
     cliArgs := os.Args[1:]
     if len(cliArgs) != 1 {
-        showUsageError()
+        fmt.Println("Provide exactly one argument! Pass -h for help")
         os.Exit(1)
     }
 
@@ -83,6 +85,11 @@ func main() {
         case "-n", "--name": fmt.Println(GetRandomName())
         case "-i", "--ip": fmt.Println(findUnusedIP())
         case "-g", "--gen-ip": generateUnusedIPs()
+        case "-h", "--help" : showUsageMessage("AWG configs generator. Usage:")
+        default:
+            fmt.Println("Unrecognised flag! Pass -h for help")
+            os.Exit(1)
+
     }
 
 }

@@ -727,14 +727,6 @@ var (
 // formatted as "adjective_surname". For example 'focused_turing'.
 // Random integer between 0 and 100 is added to the end of name
 func GetRandomName() string {
-begin:
-	name := names[randInt(len(names) - 1)]
-	if name == "boring_wozniak" /* Steve Wozniak is not boring */ {
-		goto begin
-	}
-
-    name = name + "_" + strconv.Itoa(randInt(100))
-
-	return name
+	return names[randInt(len(names) - 1)] + strconv.Itoa(randInt(100))
 }
 
