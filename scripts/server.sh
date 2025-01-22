@@ -1,5 +1,6 @@
 #!/bin/sh
 
+umask 177
 PREFIX_DIR="/opt/amnezia/awg/"
 mkdir -p ${PREFIX_DIR}/configs
 mkdir -p ${PREFIX_DIR}/keys
