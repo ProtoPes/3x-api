@@ -4,8 +4,10 @@
 
 echo "Container startup"
 
-awg-gen-config -c
-scripts/server.sh
-scripts/client.sh
+if [ ! -f wg0.conf ]; then
+    awg-gen-config -c
+    scripts/server.sh
+    scripts/client.sh
+fi
 
 tail -f /dev/null
