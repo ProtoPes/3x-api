@@ -1,3 +1,4 @@
 /misc/*
 values.txt
 /templates/values.template
+.env

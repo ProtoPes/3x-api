@@ -1,0 +1,38 @@
+services:
+  awg:
+    build:
+      context: ./docker/awg
+    privileged: true
+    depends_on:
+      api:
+        condition: service_healthy
+        restart: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - AWG_SUBNET_IP
+      - WIREGUARD_SUBNET_CIDR
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - awg_data:/opt/amnezia:ro
+    ports:
+      - ${AWG_SERVER_PORT}:${AWG_SERVER_PORT}/udp
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./docker/api
+    healthcheck:
+      test: ["CMD", "cat", "/opt/amnezia/awg/unused_ips.txt"]
+      interval: 5s
+    volumes:
+      - awg_data:/opt/amnezia
+    env_file: .env
+    restart: unless-stopped
+
+volumes:
+  awg_data:
+

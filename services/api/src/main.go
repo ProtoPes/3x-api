@@ -96,7 +96,6 @@ func showUsageMessage(message string) {
 }
 
 func main() {
-	jcmax
 	cliArgs := os.Args[1:]
 	if len(cliArgs) != 1 {
 		log.Fatal("Provide exactly one argument! Pass -h for help")
