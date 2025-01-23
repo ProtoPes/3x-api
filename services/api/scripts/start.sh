@@ -4,8 +4,9 @@
 
 echo "Container startup"
 
+# If config file do not exists, create one
 if [ ! -f wg0.conf ]; then
-    awg-gen-config -c
+    3x-api -c
     scripts/server.sh
     scripts/client.sh
 fi

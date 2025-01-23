@@ -3,38 +3,49 @@ package main
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"math"
 	"os"
 	"strconv"
 	"strings"
 )
 
+// default values
 const (
-	valuesFile                = "scripts/values"
-	messageInitiationSize int = 148
-	messageResponseSize   int = 92
+	templatesFolder       = "../templates"
+	paramFile             = templatesFolder + "/parameters.txt"
+	clientTemplate        = templatesFolder + "/client.conf"
+	serverTemplate        = templatesFolder + "/wg0.conf"
+	valuesFile            = "scripts/values"
+	messageInitiationSize = 148
+	messageResponseSize   = 92
+	jcmin                 = 3
+	jcmax                 = 10
+	jmin                  = 50
+	jmax                  = 1000
 )
 
-var defaults = map[string]int{
-	"JCMIN": 0,
-	"JCMAX": 10,
-	"JMIN":  10,
-	"JMAX":  10,
+func tryReadFile(name string) string {
+	/* Try to read a file, exit with 1 if something wrong */
+	res, err := os.ReadFile(name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(res)
 }
 
-const (
-	jcmax = 10
-)
-
-// func validateDefaults(values
-
 func getDefaultValue(envKey string, defaultValue int) int {
-	value, err := strconv.ParseInt(os.Getenv(envKey), 10, 32)
+	/* If environment variable is set, parse it to int */
+	key, exists := os.LookupEnv(envKey)
+	if !exists {
+		return defaultValue
+	}
+	value, err := strconv.ParseInt(key, 10, 32)
 	if err != nil {
-		log.Printf("Cannot parse '%s', fallback to default %d\n", envKey, defaultValue)
+		slog.Info("Cannot parse env value, fallback to default ", envKey, defaultValue)
 		return defaultValue
 	} else if (strings.Contains(envKey, "MIN") && value < 0) || (strings.Contains(envKey, "MAX") && value > int64(defaultValue)) {
-		log.Printf("'%d'is not legal, fallback to default %d\n", value, defaultValue)
+		slog.Info("Value is not legal, fallback to default: ", "given", value, envKey, defaultValue)
 		return defaultValue
 	}
 	return int(value)
@@ -42,47 +53,31 @@ func getDefaultValue(envKey string, defaultValue int) int {
 
 func generateConfigValues() {
 	// Defaults
-	junkPacketCountMin := getDefaultValue("JUNK_PACKET_COUNT_MIN", 3)
-	junkPacketCountMax := getDefaultValue("JUNK_PACKET_COUNT_MAX", 10)
-	junkPacketMinSize := getDefaultValue("JUNK_PACKET_MIN_SIZE", 50)
-	junkPacketMaxSize := getDefaultValue("JUNK_PACKET_MAX_SIZE", 1000)
-	config := make(map[string]int)
-	config["$JUNK_PACKET_COUNT"] = randIntBound(junkPacketCountMin, junkPacketCountMax)
-	config["$JUNK_PACKET_MIN_SIZE"] = junkPacketMinSize
-	config["$JUNK_PACKET_MAX_SIZE"] = junkPacketMaxSize
+	junkPacketCountMin := getDefaultValue("JUNK_PACKET_COUNT_MIN", jcmin)
+	junkPacketCountMax := getDefaultValue("JUNK_PACKET_COUNT_MAX", jcmax)
+	junkPacketMinSize := getDefaultValue("JUNK_PACKET_MIN_SIZE", jmin)
+	junkPacketMaxSize := getDefaultValue("JUNK_PACKET_MAX_SIZE", jmax)
+	os.Setenv("Jc", strconv.Itoa(randIntBound(junkPacketCountMin, junkPacketCountMax)))
+	os.Setenv("Jmin", strconv.Itoa(junkPacketMinSize))
+	os.Setenv("Jmax", strconv.Itoa(junkPacketMaxSize))
 	s1 := randIntBound(15, 150)
 	s2 := randIntBound(15, 150)
 	for s1+messageInitiationSize == s2+messageResponseSize {
 		s2 = randIntBound(15, 150)
 	}
 
-	config["$INIT_PACKET_JUNK_SIZE"] = s1
-	config["$RESPONSE_PACKET_JUNK_SIZE"] = s2
-	var headersValue [4]int
-	for i := range headersValue {
-		headersValue[i] = randIntBound(5, math.MaxInt32)
+	os.Setenv("S1", strconv.Itoa(s1))
+	os.Setenv("S2", strconv.Itoa(s2))
+	for i := range 4 {
+		os.Setenv("H"+strconv.Itoa(i+1), strconv.Itoa(randIntBound(5, math.MaxInt32)))
 	}
 
-	config["$INIT_PACKET_MAGIC_HEADER"] = headersValue[0]
-	config["$RESPONSE_PACKET_MAGIC_HEADER"] = headersValue[1]
-	config["$UNDERLOAD_PACKET_MAGIC_HEADER"] = headersValue[2]
-	config["$TRANSPORT_PACKET_MAGIC_HEADER"] = headersValue[3]
-	writeConfigFile(config)
-}
+	param := os.ExpandEnv(tryReadFile(paramFile))
+	os.WriteFile("parameters", []byte(param), 0o600)
+	os.Setenv("Parameters", param)
+	os.WriteFile("wg0.conf", []byte(os.ExpandEnv(tryReadFile(serverTemplate))), 0o600)
+	os.WriteFile("client.conf", []byte(os.ExpandEnv(tryReadFile(clientTemplate))), 0o600)
 
-func writeConfigFile(config map[string]int) {
-	values, err1 := os.ReadFile(valuesFile)
-	if err1 != nil {
-		log.Fatal(err1)
-	}
-	replaceStrings(string(values), valuesFile, config)
-}
-
-func replaceStrings(input string, outputFile string, config map[string]int) {
-	for i, j := range config {
-		input = strings.ReplaceAll(input, i, strconv.Itoa(j))
-		os.WriteFile(outputFile, []byte(input), 0o600)
-	}
 }
 
 func showUsageMessage(message string) {
@@ -96,13 +91,15 @@ func showUsageMessage(message string) {
 }
 
 func main() {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+	slog.Debug("Start of program")
 	cliArgs := os.Args[1:]
 	if len(cliArgs) != 1 {
 		log.Fatal("Provide exactly one argument! Pass -h for help")
 	}
 
 	switch cliArgs[0] {
-	case "-c", "--config":
+	case "init":
 		generateConfigValues()
 	case "-n", "--name":
 		fmt.Println(GetRandomName())

@@ -1,7 +1,7 @@
 services:
   awg:
     build:
-      context: ./docker/awg
+      context: ./services/awg
     privileged: true
     depends_on:
       api:
@@ -24,7 +24,7 @@ services:
 
   api:
     build:
-      context: ./docker/api
+      context: ./services/api
     healthcheck:
       test: ["CMD", "cat", "/opt/amnezia/awg/unused_ips.txt"]
       interval: 5s

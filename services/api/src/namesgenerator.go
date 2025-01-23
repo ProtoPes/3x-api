@@ -723,10 +723,8 @@ var (
 	}
 )
 
-// GetRandomName generates a random name from the list of adjectives and surnames in this package
-// formatted as "adjective_surname". For example 'focused_turing'.
+// GetRandomName generates a random name from the list of surnames in this package
 // Random integer between 0 and 100 is added to the end of name
 func GetRandomName() string {
-	return names[randInt(len(names) - 1)] + strconv.Itoa(randInt(100))
+	return names[randInt(len(names)-1)] + strconv.Itoa(randInt(100))
 }
-

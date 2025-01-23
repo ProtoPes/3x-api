@@ -5,13 +5,13 @@ PREFIX_DIR="/opt/amnezia/awg"
 cd ${PREFIX_DIR}
 source ${PREFIX_DIR}/scripts/values
 
-CLIENT_NAME=$(awg-gen-config -n)
+CLIENT_NAME=$(3x-api -n)
 if [ ! -r ${PREFIX_DIR}/unused_ips.txt ]; then
-    awg-gen-config -g
+    3x-api -g
 fi
 
 ## TODO: Remove hardcode
-WIREGUARD_CLIENT_IP="10.8.1.$(awg-gen-config -i)/32"
+WIREGUARD_CLIENT_IP="10.8.1.$(3x-api -i)/32"
 
 WIREGUARD_CLIENT_PRIVATE_KEY=$(wg genkey)
 echo $WIREGUARD_CLIENT_PRIVATE_KEY > ${PREFIX_DIR}/keys/${CLIENT_NAME}_private_key.key

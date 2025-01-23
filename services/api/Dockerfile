@@ -7,8 +7,7 @@ FROM alpine:3.21.2
 RUN apk --update upgrade --no-cache \
     && apk add --no-cache dumb-init wireguard-tools-wg
 WORKDIR /opt/amnezia/awg
-COPY scripts /opt/amnezia/awg/scripts
-RUN chmod +x /opt/amnezia/awg/scripts/*
-COPY --from=go /usr/bin/awg-gen-config /usr/bin/awg-gen-config
-CMD ["dumb-init", "scripts/start.sh"]
-
+COPY --chmod=700 scripts /opt/amnezia/awg/scripts
+COPY --from=go /usr/bin/3x-api /usr/bin/3x-api
+ENTRYPOINT ["dumb-init", "scripts/start.sh"]
+CMD [""]

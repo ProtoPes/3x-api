@@ -1,6 +1,10 @@
-# awg
+# 3x-api
 
 API endpoint for managing configurations written in GO
+
+## Plan
+
+![Plan](Plan.odg) 
 
 ## Installation
 
