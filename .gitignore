@@ -2,3 +2,4 @@
 values.txt
 /templates/values.template
 .env
+/bin/*

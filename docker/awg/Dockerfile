@@ -2,11 +2,11 @@ FROM amneziavpn/amnezia-wg:latest
 
 #Install required packages
 RUN apk --update upgrade --no-cache && \
-    apk add --no-cache bash curl dumb-init
-WORKDIR /run
+    apk add --no-cache dumb-init entr
+WORKDIR /etc/wireguard
 COPY --chmod=700 start.sh /run/start.sh
 
-# Tune network  
+# Tune network
 RUN echo -e " \n\
   fs.file-max = 51200 \n\
   \n\

@@ -1,11 +1,10 @@
 services:
   awg:
     build:
-      context: ./services/awg
-    privileged: true
+      context: ./docker/awg
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
         restart: true
     cap_add:
       - NET_ADMIN
@@ -15,23 +14,24 @@ services:
       - WIREGUARD_SUBNET_CIDR
     volumes:
       - /lib/modules:/lib/modules:ro
-      - awg_data:/opt/amnezia:ro
+      - awg_data:/etc/wireguard:ro
     ports:
       - ${AWG_SERVER_PORT}:${AWG_SERVER_PORT}/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-    restart: unless-stopped
+    devices:
+      - /dev/net/tun
+    restart: always
 
   api:
     build:
-      context: ./services/api
-    healthcheck:
-      test: ["CMD", "cat", "/opt/amnezia/awg/unused_ips.txt"]
-      interval: 5s
+      context: .
+    # healthcheck:
+      # test: ["CMD", "cat", "/configs/awg/wg0.conf"]
+      # interval: 5s
     volumes:
-      - awg_data:/opt/amnezia
+      - awg_data:/configs/awg
     env_file: .env
-    restart: unless-stopped
 
 volumes:
   awg_data:

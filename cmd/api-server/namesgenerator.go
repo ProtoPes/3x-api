@@ -726,5 +726,5 @@ var (
 // GetRandomName generates a random name from the list of surnames in this package
 // Random integer between 0 and 100 is added to the end of name
 func GetRandomName() string {
-	return names[randInt(len(names)-1)] + strconv.Itoa(randInt(100))
+	return names[RandInt(len(names)-1)] + strconv.Itoa(RandInt(100))
 }
